@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+            margin: 20px;
+        }
+
+        .game-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 800px;
+        }
+
+        .poem-display {
+            font-size: 28px;
+            text-align: center;
+            margin: 20px 0;
+            line-height: 1.5;
+            direction: rtl;
+        }
+
+        .word {
+            display: inline-flex;
+            margin: 0 10px;
+            gap: 3px;
+        }
+
+        .word.complete {
+            gap: 0;
+            font-family: "Traditional Arabic", "Arabic Typesetting", Arial;
+        }
+        
+        .letter {
+            width: 20px;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .word.complete .letter {
+            width: auto;
+        }
+
+        .keyboard {
+            display: grid;
+            grid-template-columns: repeat(10, 2fr);
+            gap: 5px;
+            margin: 20px 0;
+			
+        }
+
+        .key {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px;
+            font-size: 24px;
+			font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .key:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .key:hover:not(:disabled) {
+            background: #45a049;
+        }
+
+        .next-poem-btn {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            float: right;  /* Align to right */
+            width: 150px;
+        }
+
+        .next-poem-btn:not(:disabled) {
+            opacity: 1;
+        }
+
+        .next-poem-btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .roll-button-container {
+            text-align: center;
+            margin: 20px 0;
+            clear: both;  /* Clear the float of next-poem-btn */
+        }
+
+        .roll-button {
+            background: #FF4081;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            width: 200px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin: 0 auto;  /* Center the button */
+            display: block;  /* Make it block to allow margin auto */
+        }
+
+        .roll-button:hover {
+            background: #F50057;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .roll-button:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .roll-button:disabled {
+            background: #cccccc;
+            transform: none;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+		.dice-container {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin: 40px 0;
+            perspective: 1000px;
+            width: 100%;
+        }
+        .dice {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease;
+        }
+
+        .dice.rolling {
+            animation: rolling 3s ease-out forwards;
+        }
+
+        @keyframes rolling {
+            0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
+            30% { transform: rotateX(720deg) rotateY(360deg) rotateZ(180deg); }
+            60% { transform: rotateX(1440deg) rotateY(720deg) rotateZ(360deg); }
+            85% { transform: rotateX(1800deg) rotateY(1080deg) rotateZ(420deg); }
+            100% { transform: var(--final-rotation); }
+        }
+
+        .dice-face {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: #90E0EF;
+            border: 2px solid #333;
+            border-radius: 10px;
+            display: grid;
+            grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+            padding: 4px;
+            box-sizing: border-box;
+        }
+
+        .dot {
+            background: transparent;
+            border-radius: 50%;
+            margin: 2px;
+        }
+
+        .front  { transform: translateZ(30px); }
+        .back   { transform: translateZ(-30px) rotateY(180deg); }
+        .right  { transform: translateX(30px) rotateY(90deg); }
+        .left   { transform: translateX(-30px) rotateY(-90deg); }
+        .top    { transform: translateY(-30px) rotateX(90deg); }
+        .bottom { transform: translateY(30px) rotateX(-90deg); }
+
+        .one .dot:nth-child(5) { 
+            background: #333 !important; 
+        }
+        
+        .two .dot:nth-child(1),
+        .two .dot:nth-child(9) { 
+            background: #333 !important; 
+        }
+        
+        .three .dot:nth-child(1),
+        .three .dot:nth-child(5),
+        .three .dot:nth-child(9) { 
+            background: #333 !important; 
+        }
+        
+        .four .dot:nth-child(1),
+        .four .dot:nth-child(3),
+        .four .dot:nth-child(7),
+        .four .dot:nth-child(9) { 
+            background: #333 !important; 
+        }
+        
+        .five .dot:nth-child(1),
+        .five .dot:nth-child(3),
+        .five .dot:nth-child(5),
+        .five .dot:nth-child(7),
+        .five .dot:nth-child(9) { 
+            background: #333 !important; 
+        }
+        
+        .six .dot:nth-child(1),
+        .six .dot:nth-child(3),
+        .six .dot:nth-child(4),
+        .six .dot:nth-child(6),
+        .six .dot:nth-child(7),
+        .six .dot:nth-child(9) { 
+            background: #333 !important; 
+        }
+
+
+        .hint {
+            text-align: center;
+            color: #666;
+            font-size: 28px;
+            margin: 10px 0;
+        }
+
+        .progress-info {
+            text-align: right;
+            margin: 10px 0;
+            font-size: 16px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+<audio id="diceSound" preload="auto">
+    <source src="DiceRoll.mp3" type="audio/mpeg">
+</audio>
+    <div class="game-container">
+        <div class="file-input-container" style="margin-bottom: 20px;">
+            <input type="file" id="poemFile" accept=".txt" style="margin-bottom: 10px;">
+        </div>
+        
+        <div class="progress-info" id="progressInfo"></div>
+		
+		        <div class="hint" id="hint"></div>
+        <div class="poem-display" id="poemDisplay"></div>
+
+        
+        <div class="dice-container">
+            <div class="dice" id="dice1">
+                <div class="dice-face front one">
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                </div>
+                <div class="dice-face back six">
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                </div>
+                <div class="dice-face right two">
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                </div>
+                <div class="dice-face left five">
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                </div>
+                <div class="dice-face top three">
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                </div>
+                <div class="dice-face bottom four">
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                </div>
+            </div>
+            <div class="dice" id="dice2">
+                <!-- Same structure as dice1 -->
+                <div class="dice-face front one">
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                </div>
+                <div class="dice-face back six">
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                </div>
+                <div class="dice-face right two">
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                </div>
+                <div class="dice-face left five">
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                </div>
+                <div class="dice-face top three">
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                </div>
+                <div class="dice-face bottom four">
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                </div>
+            </div>
+        </div>
+        
+ <div class="roll-button-container">
+            <button class="roll-button" onclick="rollDice()">Roll Dice</button>
+        </div>
+        
+        <div class="keyboard" id="keyboard"></div>
+        
+        <button class="next-poem-btn" id="nextPoemBtn" onclick="nextPoem()">Next Poem</button>
+    </div>
+
+
+    <script>
+        let poems = [];
+        let currentPoem;
+        let hiddenPoem;
+        let currentPoemIndex = 0;
+        let isRolling = false;
+
+        // Updated file loading handler with better error handling
+        document.getElementById('poemFile').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                console.log("File content:", content); // Debug log
+                
+                // Split by both \n and \r\n to handle different line endings
+                poems = content.split(/\r?\n/)
+                    .filter(line => line.trim() !== '')
+                    .map(line => {
+                        console.log("Processing line:", line); // Debug log
+                        const [text, hint] = line.split('|').map(part => part ? part.trim() : '');
+                        if (!text) {
+                            console.log("Warning: Empty text in line:", line);
+                            return null;
+                        }
+                        return { text, hint: hint || '' };
+                    })
+                    .filter(item => item !== null);
+                
+                console.log("Processed poems:", poems); // Debug log
+                
+                if (poems.length > 0) {
+                    currentPoemIndex = 0;
+                    initGame();
+                    updateProgressInfo();
+                } else {
+                    alert('No valid poems found in the file. Each line should be in the format: poem text|hint');
+                }
+            };
+            reader.onerror = function(error) {
+                console.error('Error reading file:', error);
+                alert('Error reading file. Please try again.');
+            };
+            reader.readAsText(file, 'UTF-8');
+        });
+
+        // Keep other existing functions (updateProgressInfo, nextPoem, initGame, etc.)...
+        
+        function updateProgressInfo() {
+            const progressInfo = document.getElementById('progressInfo');
+            progressInfo.textContent = `Poem ${currentPoemIndex + 1} of ${poems.length}`;
+        }
+
+        function nextPoem() {
+            if (currentPoemIndex < poems.length - 1) {
+                currentPoemIndex++;
+                initGame();
+                updateProgressInfo();
+               // document.getElementById('nextPoemBtn').disabled = true;
+            } else {
+                alert('Congratulations! You have completed all poems!');
+                currentPoemIndex = 0;
+                initGame();
+                updateProgressInfo();
+            }
+        }
+
+        function initGame() {
+            if (poems.length === 0) {
+                alert('Please load a poems file first');
+                return;
+            }
+
+            currentPoem = poems[currentPoemIndex];
+            
+            const words = currentPoem.text.split(' ');
+            hiddenPoem = words.map(word => {
+                return word.split('').map(char => {
+                    if (/[\u0600-\u06FF]/.test(char)) {
+                        return '_';
+                    }
+                    return char;
+                });
+            });
+
+            displayPoem();
+            document.getElementById('hint').textContent = currentPoem.hint || '';
+
+            // Reset keyboard
+            const keyboard = document.getElementById('keyboard');
+            keyboard.innerHTML = '';
+            arabicLetters.forEach(letter => {
+                const button = document.createElement('button');
+                button.className = 'key';
+                button.textContent = letter;
+                button.onclick = () => guessLetter(letter, button);
+                keyboard.appendChild(button);
+            });
+        }
+
+        const arabicLetters = [
+            'ا', 'ب', 'ت', 'ث', 'ج', 'ح', 'خ', 'د', 'ذ', 'ر',
+            'ز', 'س', 'ش', 'ص', 'ض', 'ط', 'ظ', 'ع', 'غ', 'ف',
+            'ق', 'ك', 'ل', 'م', 'ن', 'ه', 'و', 'ي', 'ء', 'ة'
+        ];
+
+        function isWordComplete(word) {
+            return !word.includes('_');
+        }
+
+        function displayPoem() {
+            const poemDisplay = document.getElementById('poemDisplay');
+            poemDisplay.innerHTML = '';
+            
+            const originalWords = currentPoem.text.split(' ');
+            
+            hiddenPoem.forEach((word, wordIndex) => {
+                const wordDiv = document.createElement('div');
+                wordDiv.className = 'word';
+                
+                if (isWordComplete(word)) {
+                    wordDiv.classList.add('complete');
+                    wordDiv.textContent = originalWords[wordIndex];
+                } else {
+                    word.forEach((char, charIndex) => {
+                        const letterSpan = document.createElement('span');
+                        letterSpan.className = 'letter';
+                        letterSpan.textContent = char;
+                        wordDiv.appendChild(letterSpan);
+                    });
+                }
+                
+                poemDisplay.appendChild(wordDiv);
+            });
+        }
+
+        function guessLetter(letter, button) {
+            let found = false;
+            const originalText = currentPoem.text.split(' ');
+            
+            hiddenPoem = hiddenPoem.map((word, wordIndex) => {
+                return word.map((char, charIndex) => {
+                    if (originalText[wordIndex][charIndex] === letter) {
+                        found = true;
+                        return letter;
+                    }
+                    return char;
+                });
+            });
+
+            if (found) {
+                displayPoem();
+                button.disabled = true;
+                checkGameCompletion();
+            } else {
+                button.disabled = true;
+            }
+        }
+
+        function checkGameCompletion() {
+            const isComplete = hiddenPoem.every(word => 
+                word.every(char => char !== '_')
+            );
+         //   document.getElementById('nextPoemBtn').disabled = !isComplete;
+        }
+
+        // Updated dice rolling function with improved animation
+        async function rollDice() {
+            if (isRolling) return;
+            isRolling = true;
+            
+            const dice1 = document.getElementById('dice1');
+            const dice2 = document.getElementById('dice2');
+            const rollButton = document.querySelector('.roll-button');
+            const diceSound = document.getElementById('diceSound');
+            
+            rollButton.disabled = true;
+            
+            // Play dice rolling sound
+            diceSound.currentTime = 0; // Reset audio to start
+            diceSound.play();
+            
+            // Generate final values
+            const finalDice1 = Math.floor(Math.random() * 6) + 1;
+            const finalDice2 = Math.floor(Math.random() * 6) + 1;
+            
+            // Rest of the rolling function remains the same...
+            const rotations = {
+                1: 'rotateX(0deg) rotateY(0deg)',
+                2: 'rotateX(0deg) rotateY(-90deg)',
+                3: 'rotateX(-90deg) rotateY(0deg)',
+                4: 'rotateX(90deg) rotateY(0deg)',
+                5: 'rotateX(0deg) rotateY(90deg)',
+                6: 'rotateX(180deg) rotateY(0deg)'
+            };
+            
+            const randomRotations = () => {
+                const x = Math.floor(Math.random() * 2) * 360;
+                const y = Math.floor(Math.random() * 2) * 360;
+                return `rotateX(${x}deg) rotateY(${y}deg)`;
+            };
+
+            updateDiceFaces(dice1, finalDice1);
+            updateDiceFaces(dice2, finalDice2);
+            
+            dice1.style.setProperty('--final-rotation', `${rotations[finalDice1]} ${randomRotations()}`);
+            dice2.style.setProperty('--final-rotation', `${rotations[finalDice2]} ${randomRotations()}`);
+            
+            dice1.classList.add('rolling');
+            dice2.classList.add('rolling');
+            
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            
+            dice1.classList.remove('rolling');
+            dice2.classList.remove('rolling');
+            
+            dice1.style.transform = rotations[finalDice1];
+            dice2.style.transform = rotations[finalDice2];
+            
+            rollButton.disabled = false;
+            isRolling = false;
+        }
+
+        // New function to update dice faces based on the final number
+        function updateDiceFaces(diceElement, number) {
+            // Remove all previous number classes
+            diceElement.querySelectorAll('.dice-face').forEach(face => {
+                face.classList.remove('one', 'two', 'three', 'four', 'five', 'six');
+            });
+
+            // Define the faces for the new number
+            const faces = {
+                front: 'one',
+                back: 'six',
+                right: 'two',
+                left: 'five',
+                top: 'three',
+                bottom: 'four'
+            };
+
+            // Update each face based on the rotation needed
+            Object.entries(faces).forEach(([position, value]) => {
+                const face = diceElement.querySelector(`.dice-face.${position}`);
+                if (face) {
+                    face.className = `dice-face ${position} ${value}`;
+                }
+            });
+        }
+
+        // Initialize the game when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            // Add initial rotation to dice for better 3D effect
+            const dice1 = document.getElementById('dice1');
+            const dice2 = document.getElementById('dice2');
+            dice1.style.transform = 'rotateX(-20deg) rotateY(-20deg)';
+            dice2.style.transform = 'rotateX(-20deg) rotateY(-20deg)';
+        });
+    </script>
+</body>
+</html>
