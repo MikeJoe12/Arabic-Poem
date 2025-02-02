@@ -246,6 +246,27 @@
             font-size: 16px;
             color: #666;
         }
+		 .solve-button {
+            background: #FF9800;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-size: 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-left: 10px;
+            float: left;  /* Align to left since the page is RTL */
+        }
+
+        .solve-button:hover {
+            background: #F57C00;
+        }
+
+        .solve-button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -257,7 +278,10 @@
             <input type="file" id="poemFile" accept=".txt" style="margin-bottom: 10px;">
         </div>
         
-        <div class="progress-info" id="progressInfo"></div>
+         <div style="display: flex; justify-content: space-between; align-items: center;">
+            <button class="solve-button" id="solveBtn" onclick="solvePoem()" disabled>Solve</button>
+            <div class="progress-info" id="progressInfo"></div>
+        </div>
 		
 		        <div class="hint" id="hint"></div>
         <div class="poem-display" id="poemDisplay"></div>
@@ -409,6 +433,18 @@
                 updateProgressInfo();
             }
         }
+        function solvePoem() {
+            const originalWords = currentPoem.text.split(' ');
+            hiddenPoem = originalWords.map(word => word.split(''));
+            displayPoem();
+            
+            // Disable all keyboard buttons
+            const keyboardButtons = document.querySelectorAll('.key');
+            keyboardButtons.forEach(button => button.disabled = true);
+            
+            // Disable solve button after use
+            document.getElementById('solveBtn').disabled = true;
+        }		
 
         function initGame() {
             if (poems.length === 0) {
@@ -430,6 +466,9 @@
 
             displayPoem();
             document.getElementById('hint').textContent = currentPoem.hint || '';
+            
+            // Enable solve button when new poem is initialized
+            document.getElementById('solveBtn').disabled = false;
 
             // Reset keyboard
             const keyboard = document.getElementById('keyboard');
